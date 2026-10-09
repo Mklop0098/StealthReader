@@ -1,0 +1,20 @@
+{
+  "name": "stealth-reader",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Offline-first desktop novel reader with work-inspired skins",
+  "scripts": {
+    "dev": "pnpm --filter @stealth-reader/desktop dev",
+    "build": "pnpm --filter @stealth-reader/desktop build",
+    "test": "pnpm -r test",
+    "typecheck": "pnpm -r typecheck",
+    "lint": "pnpm -r lint",
+    "tauri": "pnpm --filter @stealth-reader/desktop tauri",
+    "rust:test": "cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml",
+    "rust:fmt": "cargo fmt --manifest-path apps/desktop/src-tauri/Cargo.toml",
+    "rust:clippy": "cargo clippy --manifest-path apps/desktop/src-tauri/Cargo.toml --all-targets -- -D warnings"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

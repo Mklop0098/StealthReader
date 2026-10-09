@@ -1,0 +1,36 @@
+/* Windows Terminal / CMD, matching the supplied console reference. */
+.term { display: grid; grid-template-rows: 31px minmax(0, 1fr); height: 100%; min-height: 0; background: #0c0c0c; color: #ccc; font: 400 calc(var(--reader-size, 18px) * .89)/1.2 Consolas, "Cascadia Mono", monospace; --skin-font: Consolas, "Cascadia Mono", monospace; }
+.term-titlebar { display: flex; align-items: center; gap: 0; background: #2d2d2d; padding: 0 8px; height: 31px; font: 12px "Segoe UI", sans-serif; }
+.term-shell-tab { height: 31px; min-width: 245px; display: flex; align-items: center; gap: 10px; padding: 0 10px; background: #0c0c0c; border-radius: 7px 7px 0 0; color: #eee; }
+.term-shell-tab > span:last-child { margin-left: auto; color: #ddd; font-size: 18px; }
+.term-cmd-icon { font: 8px Consolas, monospace; border: 1px solid #bbb; padding: 0 1px; line-height: 10px; color: #eee; }
+.term-new-tab { padding: 0 14px; color: #bbb; }
+.term-nav { margin-left: auto; display: flex; gap: 4px; }
+.term-nav button { background: transparent; color: #aaa; border: 0; padding: 2px 6px; cursor: pointer; font: inherit; font-size: 11px; }
+.term-nav button:hover { background: #444; color: #fff; }
+.term-body { overflow: auto; padding: 8px; min-height: 0; outline: none; scrollbar-color: #444 #0c0c0c; }
+.term-prompt { color: #ccc; margin-bottom: 19px; white-space: pre-wrap; line-height: 1.2; }
+.term-shell-path { color: inherit; }
+.term-output-heading { color: #ccc; margin-bottom: 0; }
+.term-line { line-height: 1.2; white-space: pre-wrap; overflow-wrap: anywhere; font: inherit; }
+.term-text { font: inherit; }
+.term-batch-heading { margin-top: 1.2em; padding-inline-start: 2ch; }
+.term-record { display: grid; grid-template-columns: 8ch minmax(0, 1fr); padding-inline-start: 4ch; }
+.term-record-level { white-space: nowrap; }
+.term-record-message { min-width: 0; }
+.term-caret { display: inline-block; width: 8px; height: 2px; background: #ccc; vertical-align: baseline; animation: term-blink 1s step-end infinite; }
+.term-bottom-prompt { margin-top: 19px; margin-bottom: 0; }
+@keyframes term-blink { 50% { opacity: 0; } }
+.term-chapters { margin-left: 4px; position: relative; align-self: center; color: #aaa; font-size: 11px; }
+.term-chapters summary { cursor: pointer; list-style: none; padding: 4px 8px; }
+.term-chapters[open] summary { background: #444; }
+.term-tabs { position: absolute; z-index: 10; top: 26px; left: 0; display: flex; flex-direction: column; width: 260px; max-height: 400px; overflow: auto; background: #242424; border: 1px solid #444; padding: 4px; box-shadow: 0 8px 24px #0008; }
+.term-tab { background: none; border: 0; color: #ccc; padding: 7px 10px; cursor: pointer; white-space: nowrap; text-align: left; font: 12px "Segoe UI", sans-serif; }
+.term-tab.is-active, .term-tab:hover { background: #373737; color: #fff; }
+.term-success { color: #16c60c; }
+.term-link { color: #3b9de9; }
+.term-dim { color: #777; }
+.term-warning { color: #f9f1a5; }
+.term-error { color: #e74856; }
+.term-neutral { font-size: 16px; }
+@media (prefers-reduced-motion: reduce) { .term-caret { animation: none; } }
