@@ -5,9 +5,9 @@
  */
 
 /** Stable identifier of a reading surface skin. */
-export type SkinId = 'vscode' | 'excel' | 'terminal';
+export type SkinId = 'vscode' | 'excel' | 'terminal' | 'claude';
 
-export const SKIN_IDS: readonly SkinId[] = ['vscode', 'excel', 'terminal'] as const;
+export const SKIN_IDS: readonly SkinId[] = ['vscode', 'excel', 'terminal', 'claude'] as const;
 
 export function isSkinId(value: unknown): value is SkinId {
   return typeof value === 'string' && (SKIN_IDS as readonly string[]).includes(value);

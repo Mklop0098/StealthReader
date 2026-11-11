@@ -74,7 +74,7 @@ export function createAppStore(client: IpcClient = ipc) {
     const applyWindowTitle = async (): Promise<void> => {
       const { mode, activeBook } = get();
       const title =
-        mode === 'neutral' || get().settings.activeSkin === 'vscode'
+        mode === 'neutral' || ['vscode', 'claude'].includes(get().settings.activeSkin)
           ? NEUTRAL_WINDOW_TITLE
           : activeBook
             ? activeBook.title

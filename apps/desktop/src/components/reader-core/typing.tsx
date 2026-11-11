@@ -4,11 +4,13 @@ import type { ChapterDto, ReaderAnchor } from '@stealth-reader/shared-types';
 const MAX_OPENING_CHARS = 1200;
 const MAX_DURATION_MS = 3500;
 
-export function useChapterTyping({ chapter, anchor, enabled, reducedMotion }: {
+export function useChapterTyping({ chapter, anchor, enabled, reducedMotion, holdMs = 0 }: {
   chapter: ChapterDto;
   anchor: ReaderAnchor;
   enabled: boolean;
   reducedMotion: boolean;
+  /** Optional pause (e.g. a "thinking" indicator) before the text starts revealing. */
+  holdMs?: number;
 }) {
   const entryAnchor = useRef(anchor);
   entryAnchor.current = anchor;
@@ -35,34 +37,57 @@ export function useChapterTyping({ chapter, anchor, enabled, reducedMotion }: {
   }, [chapter.id, chapter.paragraphs]);
   const [progress, setProgress] = useState({ plan, count: 0 });
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const holdRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [holdingPlan, setHoldingPlan] = useState<typeof plan | null>(null);
   const shouldType = enabled && !reducedMotion && !systemReducedMotion;
   const count = progress.plan === plan ? progress.count : 0;
   const isTyping = shouldType && count < plan.total;
+  const isThinking = isTyping && holdingPlan === plan;
   const finish = useCallback(() => {
     if (timerRef.current !== null) clearInterval(timerRef.current);
     timerRef.current = null;
+    if (holdRef.current !== null) clearTimeout(holdRef.current);
+    holdRef.current = null;
+    setHoldingPlan(null);
     setProgress(current => current.plan === plan && current.count === plan.total ? current : { plan, count: plan.total });
   }, [plan]);
   useEffect(() => {
     if (!shouldType || plan.total === 0) return;
     setProgress({ plan, count: 0 });
-    const started = performance.now();
-    const duration = Math.min(MAX_DURATION_MS, Math.max(450, plan.total * 9));
-    const timer = setInterval(() => {
-      const elapsed = performance.now() - started;
-      const next = Math.min(plan.total, Math.floor(plan.total * elapsed / duration));
-      setProgress(current => current.plan === plan && current.count === plan.total ? current : { plan, count: next });
-      if (elapsed >= duration) {
-        clearInterval(timer);
-        timerRef.current = null;
-      }
-    }, 32);
-    timerRef.current = timer;
-    return () => {
-      clearInterval(timer);
-      timerRef.current = null;
+    let timer: ReturnType<typeof setInterval> | null = null;
+    let hold: ReturnType<typeof setTimeout> | null = null;
+    const start = (): void => {
+      hold = null;
+      holdRef.current = null;
+      setHoldingPlan(null);
+      const started = performance.now();
+      const duration = Math.min(MAX_DURATION_MS, Math.max(450, plan.total * 9));
+      timer = setInterval(() => {
+        const elapsed = performance.now() - started;
+        const next = Math.min(plan.total, Math.floor(plan.total * elapsed / duration));
+        setProgress(current => current.plan === plan && current.count === plan.total ? current : { plan, count: next });
+        if (elapsed >= duration) {
+          if (timer !== null) clearInterval(timer);
+          timer = null;
+          timerRef.current = null;
+        }
+      }, 32);
+      timerRef.current = timer;
     };
-  }, [plan, shouldType]);
+    if (holdMs > 0) {
+      setHoldingPlan(plan);
+      hold = setTimeout(start, holdMs);
+      holdRef.current = hold;
+    } else {
+      start();
+    }
+    return () => {
+      if (timer !== null) clearInterval(timer);
+      if (hold !== null) clearTimeout(hold);
+      timerRef.current = null;
+      holdRef.current = null;
+    };
+  }, [plan, shouldType, holdMs]);
 
   const visibleText = (index: number): string => {
     const text = chapter.paragraphs[index]?.content ?? '';
@@ -78,7 +103,7 @@ export function useChapterTyping({ chapter, anchor, enabled, reducedMotion }: {
   for (const [index, offset] of plan.offsets) {
     if (offset <= count) cursorIndex = index;
   }
-  return { isTyping, visibleText, cursorIndex, finish };
+  return { isTyping, isThinking, visibleText, cursorIndex, finish };
 }
 
 /** The hidden suffix preserves wrapping, scroll position and row measurements. */

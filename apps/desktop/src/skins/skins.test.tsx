@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { DEFAULT_SETTINGS, type ReaderAnchor } from '@stealth-reader/shared-types';
 import { readerSkins } from './registry.js';
@@ -34,7 +34,13 @@ describe('reader skins', () => {
       const onStepChapter = vi.fn();
       const { unmount } = render(<skin.ReaderView {...readerProps} onSelectChapter={onSelectChapter} onStepChapter={onStepChapter} />);
       if (skin.id === 'terminal') fireEvent.click(screen.getByText('Chapters ⌄'));
-      fireEvent.click(screen.getByRole(skin.id === 'excel' ? 'tab' : 'button', { name: skin.id === 'vscode' ? 'aggregate.ts' : /Chapter Two/ }));
+      if (skin.id === 'claude') {
+        const reply = screen.getByRole('textbox', { name: 'Reply' });
+        fireEvent.change(reply, { target: { value: '2' } });
+        fireEvent.keyDown(reply, { key: 'Enter' });
+      } else {
+        fireEvent.click(screen.getByRole(skin.id === 'excel' ? 'tab' : 'button', { name: skin.id === 'vscode' ? 'aggregate.ts' : /Chapter Two/ }));
+      }
       expect(onSelectChapter).toHaveBeenCalledWith('chapter-2');
       fireEvent.click(screen.getByRole('button', { name: skin.id === 'excel' ? 'Next sheet' : 'Next chapter' }));
       expect(onStepChapter).toHaveBeenCalledWith(1);
@@ -51,7 +57,7 @@ describe('reader skins', () => {
   });
 
   it('lists chapters in every reading surface', () => {
-    for (const skin of readerSkins) {
+    for (const skin of readerSkins.filter(s => s.id !== 'claude')) {
       const { unmount } = render(<skin.ReaderView {...readerProps} />);
       expect(document.body.textContent).toContain(skin.id === 'vscode' ? 'aggregate.ts' : 'Chapter Two');
       unmount();
@@ -88,4 +94,47 @@ describe('reader skins', () => {
       unmount();
     }
   });
+
+  it('Claude skin keeps chapters out of the sidebar and jumps by typed number', () => {
+    const skin = readerSkins.find(s => s.id === 'claude')!;
+    const onSelectChapter = vi.fn();
+    const { container } = render(<skin.ReaderView {...readerProps} onSelectChapter={onSelectChapter} />);
+    expect(container.querySelector('.cld-sidebar')?.textContent).not.toContain('Chapter');
+    expect(container.querySelector('.cld-chat-title')?.textContent).toContain('Chapter One');
+    const reply = screen.getByRole('textbox', { name: 'Reply' }) as HTMLInputElement;
+    fireEvent.change(reply, { target: { value: '99' } });
+    fireEvent.keyDown(reply, { key: 'Enter' });
+    expect(onSelectChapter).not.toHaveBeenCalled();
+    expect(reply.value).toBe('99');
+    fireEvent.change(reply, { target: { value: 'hello' } });
+    fireEvent.keyDown(reply, { key: 'Enter' });
+    expect(onSelectChapter).not.toHaveBeenCalled();
+    fireEvent.change(reply, { target: { value: '1' } });
+    fireEvent.keyDown(reply, { key: 'Enter' });
+    expect(onSelectChapter).toHaveBeenCalledWith('chapter-1');
+    expect(reply.value).toBe('');
+  });
+
+  it('Claude skin shows a thinking indicator for 2s before typing, and skip clears it', () => {
+    vi.useFakeTimers();
+    try {
+      const skin = readerSkins.find(s => s.id === 'claude')!;
+      const first = render(<skin.ReaderView {...readerProps} />);
+      expect(screen.getByRole('status', { name: 'Thinking' })).toBeTruthy();
+      expect(first.container.querySelector('[aria-busy="true"]')).not.toBeNull();
+      act(() => { vi.advanceTimersByTime(2000); });
+      expect(screen.queryByRole('status', { name: 'Thinking' })).toBeNull();
+      first.unmount();
+
+      const second = render(<skin.ReaderView {...readerProps} />);
+      fireEvent.click(screen.getByRole('button', { name: 'Finish typing' }));
+      expect(screen.queryByRole('status', { name: 'Thinking' })).toBeNull();
+      expect(second.container.querySelector('[aria-busy="true"]')).toBeNull();
+      expect(second.container.querySelector('.typing-visible')?.textContent).toContain(SECRET_TEXT);
+      second.unmount();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 });
+

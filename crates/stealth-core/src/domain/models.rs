@@ -3,7 +3,7 @@
 
 use serde::{Deserialize, Serialize};
 
-pub const SKIN_IDS: [&str; 3] = ["vscode", "excel", "terminal"];
+pub const SKIN_IDS: [&str; 4] = ["vscode", "excel", "terminal", "claude"];
 
 pub fn is_skin_id(value: &str) -> bool {
     SKIN_IDS.contains(&value)

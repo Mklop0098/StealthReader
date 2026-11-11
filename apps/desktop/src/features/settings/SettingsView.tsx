@@ -75,7 +75,7 @@ export function SettingsView({ store }: SettingsViewProps) {
               aria-pressed={settings.activeSkin === skin.id}
             >
               <span className={`skin-swatch skin-swatch-${skin.id}`} aria-hidden="true">
-                <span className="skin-swatch-top"><ChromeIcon name={skin.id === 'excel' ? 'sheet' : skin.id === 'terminal' ? 'terminal' : 'code'} />{skin.displayName}</span>
+                <span className="skin-swatch-top"><ChromeIcon name={skin.id === 'excel' ? 'sheet' : skin.id === 'terminal' ? 'terminal' : skin.id === 'claude' ? 'files' : 'code'} />{skin.displayName}</span>
                 <span className="skin-swatch-body"><i /><i /><i /><i /><i /></span>
               </span>
               <span className="option-title">{skin.displayName}</span>

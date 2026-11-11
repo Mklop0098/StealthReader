@@ -77,10 +77,10 @@ export function ReaderScreen({ store }: ReaderScreenProps) {
           Library
         </button>
         <span className="reader-toolbar-title">
-          {settings.activeSkin === 'vscode' ? 'metrics-service' : activeBook.title}
+          {settings.activeSkin === 'vscode' ? 'metrics-service' : settings.activeSkin === 'claude' ? 'Workspace' : activeBook.title}
         </span>
         <span className="reader-toolbar-spacer" />
-        {(['vscode', 'excel', 'terminal'] as const).map((id) => (
+        {(['vscode', 'excel', 'terminal', 'claude'] as const).map((id) => (
           <button
             key={id}
             type="button"
